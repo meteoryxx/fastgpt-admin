@@ -1,7 +1,7 @@
 # fastgpt-admin
 ## 项目
 
-使用[项目做的前端](https://github.com/stakeswky/fastgpt-admin)，重构了后台的接口和用户管理部分，可以实现简单的用户创建和管理，本地部署的版本是fastgpt4.8.3，可以进行用户的增删改查，暂时没时间开发团队部分的内容
+[使用这个项目做的前端](https://github.com/stakeswky/fastgpt-admin)，重构了后台的接口和用户管理部分，可以实现简单的用户创建和管理，本地部署的版本是fastgpt4.8.3，可以进行用户的增删改查，暂时没时间开发团队部分的内容
 
 ## 本地开发
 
