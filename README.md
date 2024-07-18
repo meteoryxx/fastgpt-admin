@@ -14,8 +14,8 @@
 ## 部署
 
 1. Docker 构建镜像
-   1. 运行 make build
-   2. 运行 `docker-compose up -d`
+   - 运行 make build
+   - 运行 `docker-compose up -d`
 
 
 2. 部署时候提前修改`docker-compose环境变量
