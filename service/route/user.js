@@ -104,71 +104,173 @@ export const useUserRoute = (app) => {
       res.status(500).json({error: 'Error fetching users'});
     }
   });
+  // // 创建用户
+  // app.post('/users', auth(), validateUserCreation, async (req, res) => {
+  //   try {
+  //     const {username, password, avatar, timezone} = req.body;
+     
+  //     // 创建用户
+  //     const newUser = await User.create({
+  //       username,
+  //       status: 'active',
+  //       password: hashPassword(password),
+  //       avatar,
+  //       promotionRate: FullPermission,
+  //       timezone,
+  //     });
+
+
+
+
+
+  //     console.log("新用户ID:", newUser._id);
+  //     // 查询默认团队
+  //     const defaultTeam = await Team.findOne({name: 'My Team'});
+
+  //     // 将新用户添加到默认团队
+  //     const newTeamMember = await TeamMember.create({
+  //       teamId: defaultTeam._id,
+  //       userId: newUser._id,
+  //       role: 'owner',
+  //       status: 'active',
+  //       defaultTeam: true
+  //     });
+
+  //     res.status(200).json({
+  //       user: newUser,
+  //       // team: newTeam,
+  //       teamMember: newTeamMember
+  //     });
+
+  //   } catch (err) {
+  //     console.error(`创建用户或团队时出错: ${err}`);
+  //     res.status(500).json({error: '创建用户或团队时出错'});
+  //   }
+  // });
+  
+  
+  
   // 创建用户
-  app.post('/users', auth(), validateUserCreation, async (req, res) => {
-    try {
-      const {username, password, avatar, timezone} = req.body;
+app.post('/users', auth(), validateUserCreation, async (req, res) => {
+  try {
+    const { username, password, avatar, timezone } = req.body;
 
-      // 创建用户
-      const newUser = await User.create({
-        username,
-        status: 'active',
-        password: hashPassword(password),
-        avatar,
-        promotionRate: FullPermission,
-        timezone,
-      });
+    // 创建用户
+    const newUser = await User.create({
+      username,
+      status: 'active',
+      password: hashPassword(password),
+      avatar,
+      promotionRate: FullPermission,
+      timezone,
+    });
 
-      console.log("新用户ID:", newUser._id);
-      // 查询默认团队
-      const defaultTeam = await Team.findOne({name: 'My Team'});
+    console.log("新用户ID:", newUser._id);
 
-      // 将新用户添加到默认团队
-      const newTeamMember = await TeamMember.create({
-        teamId: defaultTeam._id,
-        userId: newUser._id,
-        role: 'admin',
-        status: 'active',
-        defaultTeam: true
-      });
+    // 创建团队
+    const newTeam = await Team.create({
+      name: `${newUser.username} Team`,
+      ownerId: newUser._id,
+      defaultPermission: FullPermission,
+      avatar: '/icon/logo.svg',
+      createTime: new Date(),
+      balance: 999900000,
+    });
 
-      res.status(200).json({
-        user: newUser,
-        // team: newTeam,
-        teamMember: newTeamMember
-      });
+    // 将新用户添加到新创建的团队
+    const newTeamMember = await TeamMember.create({
+      teamId: newTeam._id,
+      userId: newUser._id,
+      name: 'Member',
+      role: 'owner',
+      status: 'active',
+      defaultTeam: true,
+      createTime: new Date(),
+    });
 
-    } catch (err) {
-      console.error(`创建用户或团队时出错: ${err}`);
-      res.status(500).json({error: '创建用户或团队时出错'});
+    res.status(200).json({
+      user: newUser,
+      team: newTeam,
+      teamMember: newTeamMember
+    });
+
+  } catch (err) {
+    console.error(`创建用户或团队时出错: ${err}`);
+    res.status(500).json({ error: '创建用户或团队时出错' });
+  }
+});
+
+  
+  
+  
+  
+  
+  
+  // // 删除用户
+  // app.delete('/users/:userId', async (req, res) => {
+  //   const userId = req.params.userId;
+
+  //   try {
+  //     const user = await User.findById(userId);
+
+  //     if (!user) {
+  //       return res.status(404).send('用户不存在');
+  //     }
+
+  //     // 删除与用户相关联的团队成员信息
+  //     const teamDeleteResult = await TeamMember.deleteMany({userId});
+  //     if (teamDeleteResult.deletedCount === 0) {
+  //       console.log(`没有找到或删除任何与用户ID ${userId} 关联的团队成员`);
+  //     }
+
+  //     // 删除用户
+  //     await User.findByIdAndDelete(userId);
+
+  //     res.send('用户删除成功');
+  //   } catch (error) {
+  //     console.error('删除用户过程中发生错误:', error);
+  //     res.status(500).send('内部服务器错误');
+  //   }
+  // });
+
+
+// 删除用户
+app.delete('/users/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send('用户不存在');
     }
-  });
-  // 删除用户
-  app.delete('/users/:userId', async (req, res) => {
-    const userId = req.params.userId;
 
-    try {
-      const user = await User.findById(userId);
+    // 查找与用户相关联的团队
+    const teams = await Team.find({ ownerId: userId });
 
-      if (!user) {
-        return res.status(404).send('用户不存在');
-      }
-
-      // 删除与用户相关联的团队成员信息
-      const teamDeleteResult = await TeamMember.deleteMany({userId});
-      if (teamDeleteResult.deletedCount === 0) {
-        console.log(`没有找到或删除任何与用户ID ${userId} 关联的团队成员`);
-      }
-
-      // 删除用户
-      await User.findByIdAndDelete(userId);
-
-      res.send('用户删除成功');
-    } catch (error) {
-      console.error('删除用户过程中发生错误:', error);
-      res.status(500).send('内部服务器错误');
+    // 删除与用户相关联的团队成员信息
+    const teamMemberDeleteResult = await TeamMember.deleteMany({ userId });
+    if (teamMemberDeleteResult.deletedCount === 0) {
+      console.log(`没有找到或删除任何与用户ID ${userId} 关联的团队成员`);
     }
-  });
+
+    // 删除与用户相关联且名称不为 "My Team" 的团队
+    const teamDeleteResult = await Team.deleteMany({ ownerId: userId, name: { $ne: 'My Team' } });
+    if (teamDeleteResult.deletedCount === 0) {
+      console.log(`没有找到或删除任何与用户ID ${userId} 关联且名称不为 "My Team" 的团队`);
+    }
+
+    // 删除用户
+    await User.findByIdAndDelete(userId);
+
+    res.send('用户及其相关团队和团队成员删除成功');
+  } catch (error) {
+    console.error('删除用户过程中发生错误:', error);
+    res.status(500).send('内部服务器错误');
+  }
+});
+
+
 
   // 修改用户信息
   app.put('/users/:id', auth(), async (req, res) => {
